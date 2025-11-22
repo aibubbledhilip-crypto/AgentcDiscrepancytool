@@ -183,6 +183,16 @@ To configure AWS Athena as a data source:
    - Athena Workgroup
    - S3 Output Location
 
+## Development with VS Code
+
+For detailed instructions on setting up the development environment in VS Code, including:
+- VS Code extensions and configuration
+- Debugging setup
+- Task runners
+- API testing
+
+See the [Development Guide](./DEVELOPMENT.md).
+
 ## License
 
 MIT License

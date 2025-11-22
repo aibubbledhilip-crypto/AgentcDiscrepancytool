@@ -1,0 +1,210 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Backend",
+      "type": "npm",
+      "script": "dev",
+      "path": "backend",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Start Frontend",
+      "type": "npm",
+      "script": "dev",
+      "path": "frontend",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Start All",
+      "dependsOn": ["Start Backend", "Start Frontend"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Build Backend",
+      "type": "npm",
+      "script": "build",
+      "path": "backend",
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "reveal": "silent"
+      }
+    },
+    {
+      "label": "Build Frontend",
+      "type": "npm",
+      "script": "build",
+      "path": "frontend",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent"
+      }
+    },
+    {
+      "label": "Build All",
+      "dependsOn": ["Build Backend", "Build Frontend"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Backend Dependencies",
+      "type": "npm",
+      "script": "install",
+      "path": "backend",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Install Frontend Dependencies",
+      "type": "npm",
+      "script": "install",
+      "path": "frontend",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Install All Dependencies",
+      "dependsOn": ["Install Backend Dependencies", "Install Frontend Dependencies"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Dev Databases",
+      "type": "shell",
+      "command": "docker-compose -f docker-compose.dev.yml up -d",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Stop Dev Databases",
+      "type": "shell",
+      "command": "docker-compose -f docker-compose.dev.yml down",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Prisma Generate",
+      "type": "shell",
+      "command": "npx prisma generate",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Prisma Migrate Dev",
+      "type": "shell",
+      "command": "npx prisma migrate dev",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Prisma Studio",
+      "type": "shell",
+      "command": "npx prisma studio",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Seed Database",
+      "type": "npm",
+      "script": "seed",
+      "path": "backend",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Reset Database",
+      "type": "shell",
+      "command": "npx prisma migrate reset --force",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Docker Build All",
+      "type": "shell",
+      "command": "docker-compose build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Docker Up Production",
+      "type": "shell",
+      "command": "docker-compose up -d",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Docker Down",
+      "type": "shell",
+      "command": "docker-compose down",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Full Setup",
+      "dependsOn": [
+        "Start Dev Databases",
+        "Install All Dependencies",
+        "Prisma Generate",
+        "Prisma Migrate Dev",
+        "Seed Database"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ]
+}

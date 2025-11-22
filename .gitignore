@@ -23,9 +23,11 @@ yarn-error.log*
 
 # IDE
 .idea/
-.vscode/
 *.swp
 *.swo
+
+# VS Code - keep .vscode/ for shared settings
+# Uncomment to ignore: .vscode/
 
 # OS
 .DS_Store

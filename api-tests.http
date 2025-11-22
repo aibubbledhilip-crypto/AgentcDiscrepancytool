@@ -1,0 +1,362 @@
+# Data Quality Checker - API Tests
+# Use REST Client extension in VS Code to run these tests
+# After login, copy the token and set @token variable
+
+@baseUrl = http://localhost:3001/api
+@token = YOUR_JWT_TOKEN_HERE
+
+### ==================== HEALTH CHECK ====================
+
+### Health Check
+GET http://localhost:3001/health
+
+### ==================== AUTHENTICATION ====================
+
+### Register New User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "Test@123",
+  "firstName": "Test",
+  "lastName": "User"
+}
+
+### Login as Admin
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dataqualitychecker.com",
+  "password": "Admin@123"
+}
+
+### Login as User
+# @name loginUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@dataqualitychecker.com",
+  "password": "User@123"
+}
+
+### Get Profile
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{token}}
+
+### Update Profile
+PUT {{baseUrl}}/auth/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "Updated",
+  "lastName": "Name"
+}
+
+### Change Password
+PUT {{baseUrl}}/auth/change-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "Admin@123",
+  "newPassword": "NewAdmin@123"
+}
+
+### ==================== DATA SOURCES ====================
+
+### Get All Data Sources
+GET {{baseUrl}}/datasources
+Authorization: Bearer {{token}}
+
+### Create PostgreSQL Data Source
+# @name createPostgres
+POST {{baseUrl}}/datasources
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Local PostgreSQL",
+  "description": "Development PostgreSQL database",
+  "type": "POSTGRESQL",
+  "host": "localhost",
+  "port": 5432,
+  "database": "testdb",
+  "username": "postgres",
+  "password": "postgres"
+}
+
+### Create MySQL Data Source
+POST {{baseUrl}}/datasources
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Local MySQL",
+  "description": "Development MySQL database",
+  "type": "MYSQL",
+  "host": "localhost",
+  "port": 3306,
+  "database": "testdb",
+  "username": "root",
+  "password": "root"
+}
+
+### Create AWS Athena Data Source
+POST {{baseUrl}}/datasources
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "AWS Athena Production",
+  "description": "Production Athena data lake",
+  "type": "ATHENA",
+  "awsRegion": "us-east-1",
+  "awsAccessKeyId": "YOUR_ACCESS_KEY",
+  "awsSecretKey": "YOUR_SECRET_KEY",
+  "athenaWorkgroup": "primary",
+  "athenaOutputLocation": "s3://your-bucket/athena-results/",
+  "athenaCatalog": "AwsDataCatalog",
+  "database": "your_database"
+}
+
+### Get Data Source by ID
+GET {{baseUrl}}/datasources/{{dataSourceId}}
+Authorization: Bearer {{token}}
+
+### Update Data Source
+PUT {{baseUrl}}/datasources/{{dataSourceId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Data Source Name",
+  "description": "Updated description"
+}
+
+### Test Data Source Connection
+POST {{baseUrl}}/datasources/{{dataSourceId}}/test
+Authorization: Bearer {{token}}
+
+### Delete Data Source
+DELETE {{baseUrl}}/datasources/{{dataSourceId}}
+Authorization: Bearer {{token}}
+
+### ==================== RULES ====================
+
+### Get All Rules
+GET {{baseUrl}}/rules
+Authorization: Bearer {{token}}
+
+### Create Rule - Check for Duplicates
+# @name createRule
+POST {{baseUrl}}/rules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Check Duplicate Emails",
+  "description": "Detect duplicate email addresses in users table",
+  "dataSourceId": "{{dataSourceId}}",
+  "sqlQuery": "SELECT email, COUNT(*) as count FROM users GROUP BY email HAVING COUNT(*) > 1",
+  "expectedResult": "0",
+  "status": "ACTIVE",
+  "category": "Data Integrity",
+  "tags": ["duplicates", "users", "critical"]
+}
+
+### Create Rule - Check Null Values
+POST {{baseUrl}}/rules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Check Null Required Fields",
+  "description": "Find records with null values in required fields",
+  "dataSourceId": "{{dataSourceId}}",
+  "sqlQuery": "SELECT COUNT(*) as null_count FROM orders WHERE customer_id IS NULL OR order_date IS NULL",
+  "threshold": 0,
+  "status": "ACTIVE",
+  "category": "Data Quality",
+  "tags": ["null-check", "orders"]
+}
+
+### Create Rule - Data Freshness Check
+POST {{baseUrl}}/rules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Data Freshness Check",
+  "description": "Ensure data is updated within last 24 hours",
+  "dataSourceId": "{{dataSourceId}}",
+  "sqlQuery": "SELECT COUNT(*) FROM events WHERE created_at < NOW() - INTERVAL '24 hours'",
+  "threshold": 100,
+  "status": "DRAFT",
+  "category": "Data Freshness",
+  "tags": ["freshness", "monitoring"]
+}
+
+### Get Rule by ID
+GET {{baseUrl}}/rules/{{ruleId}}
+Authorization: Bearer {{token}}
+
+### Update Rule
+PUT {{baseUrl}}/rules/{{ruleId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Rule Name",
+  "status": "ACTIVE"
+}
+
+### Execute Rule
+POST {{baseUrl}}/rules/{{ruleId}}/execute
+Authorization: Bearer {{token}}
+
+### Get Rule Execution History
+GET {{baseUrl}}/rules/{{ruleId}}/executions?page=1&limit=10
+Authorization: Bearer {{token}}
+
+### Delete Rule
+DELETE {{baseUrl}}/rules/{{ruleId}}
+Authorization: Bearer {{token}}
+
+### ==================== SCHEDULES ====================
+
+### Get All Schedules
+GET {{baseUrl}}/schedules
+Authorization: Bearer {{token}}
+
+### Create Daily Schedule
+# @name createSchedule
+POST {{baseUrl}}/schedules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Daily Duplicate Check",
+  "description": "Run duplicate check every day at midnight",
+  "ruleId": "{{ruleId}}",
+  "cronExpression": "0 0 * * *",
+  "frequency": "DAILY",
+  "timezone": "UTC"
+}
+
+### Create Hourly Schedule
+POST {{baseUrl}}/schedules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Hourly Data Freshness Check",
+  "description": "Check data freshness every hour",
+  "ruleId": "{{ruleId}}",
+  "cronExpression": "0 * * * *",
+  "frequency": "HOURLY",
+  "timezone": "America/New_York"
+}
+
+### Get Schedule by ID
+GET {{baseUrl}}/schedules/{{scheduleId}}
+Authorization: Bearer {{token}}
+
+### Update Schedule
+PUT {{baseUrl}}/schedules/{{scheduleId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Schedule Name",
+  "cronExpression": "0 6 * * *"
+}
+
+### Toggle Schedule Active Status
+POST {{baseUrl}}/schedules/{{scheduleId}}/toggle
+Authorization: Bearer {{token}}
+
+### Run Schedule Now
+POST {{baseUrl}}/schedules/{{scheduleId}}/run
+Authorization: Bearer {{token}}
+
+### Delete Schedule
+DELETE {{baseUrl}}/schedules/{{scheduleId}}
+Authorization: Bearer {{token}}
+
+### ==================== REPORTS ====================
+
+### Get All Reports
+GET {{baseUrl}}/reports?page=1&limit=20
+Authorization: Bearer {{token}}
+
+### Generate Report
+# @name createReport
+POST {{baseUrl}}/reports
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "User Statistics Report",
+  "description": "Monthly user registration statistics",
+  "dataSourceId": "{{dataSourceId}}",
+  "sqlQuery": "SELECT DATE_TRUNC('month', created_at) as month, COUNT(*) as user_count FROM users GROUP BY month ORDER BY month DESC"
+}
+
+### Generate Report - Sales Summary
+POST {{baseUrl}}/reports
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Sales Summary",
+  "description": "Total sales by category",
+  "dataSourceId": "{{dataSourceId}}",
+  "sqlQuery": "SELECT category, SUM(amount) as total_sales, COUNT(*) as order_count FROM orders GROUP BY category"
+}
+
+### Get Report by ID
+GET {{baseUrl}}/reports/{{reportId}}
+Authorization: Bearer {{token}}
+
+### Export Report as CSV
+GET {{baseUrl}}/reports/{{reportId}}/export/csv
+Authorization: Bearer {{token}}
+
+### Export Report as JSON
+GET {{baseUrl}}/reports/{{reportId}}/export/json
+Authorization: Bearer {{token}}
+
+### Delete Report
+DELETE {{baseUrl}}/reports/{{reportId}}
+Authorization: Bearer {{token}}
+
+### ==================== DASHBOARD ====================
+
+### Get Dashboard Stats
+GET {{baseUrl}}/dashboard/stats
+Authorization: Bearer {{token}}
+
+### Get Recent Executions
+GET {{baseUrl}}/dashboard/recent-executions?limit=10
+Authorization: Bearer {{token}}
+
+### Get Execution Trends (Last 7 Days)
+GET {{baseUrl}}/dashboard/execution-trends?days=7
+Authorization: Bearer {{token}}
+
+### Get Execution Trends (Last 30 Days)
+GET {{baseUrl}}/dashboard/execution-trends?days=30
+Authorization: Bearer {{token}}
+
+### Get Discrepancy Summary
+GET {{baseUrl}}/dashboard/discrepancy-summary?limit=5
+Authorization: Bearer {{token}}
+
+### Get Upcoming Schedules
+GET {{baseUrl}}/dashboard/upcoming-schedules?limit=5
+Authorization: Bearer {{token}}

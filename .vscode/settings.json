@@ -1,0 +1,82 @@
+{
+  // Editor Settings
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+
+  // TypeScript Settings
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.tsdk": "node_modules/typescript/lib",
+
+  // File Associations
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+
+  // Exclude from Explorer
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true
+  },
+
+  // Search Exclude
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true
+  },
+
+  // Tailwind CSS
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+    ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+
+  // Prisma
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+
+  // ESLint
+  "eslint.workingDirectories": [
+    { "directory": "backend", "changeProcessCWD": true },
+    { "directory": "frontend", "changeProcessCWD": true }
+  ],
+
+  // Terminal
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+  // Git
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+
+  // Emmet
+  "emmet.includeLanguages": {
+    "typescriptreact": "html"
+  },
+
+  // Rest Client
+  "rest-client.environmentVariables": {
+    "$shared": {
+      "baseUrl": "http://localhost:3001"
+    },
+    "development": {
+      "token": ""
+    }
+  }
+}
