@@ -1,0 +1,244 @@
+// Prisma schema for Data Quality Discrepancy Checker
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User roles enum
+enum Role {
+  ADMIN
+  USER
+  VIEWER
+}
+
+// Data source types enum
+enum DataSourceType {
+  POSTGRESQL
+  MYSQL
+  ATHENA
+  SQLSERVER
+  ORACLE
+}
+
+// Rule status enum
+enum RuleStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+// Execution status enum
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+// Schedule frequency enum
+enum ScheduleFrequency {
+  ONCE
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+// User model
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+
+  // Relations
+  dataSources   DataSource[]
+  rules         Rule[]
+  reports       Report[]
+  schedules     Schedule[]
+  executions    Execution[]
+
+  @@map("users")
+}
+
+// Data Source configuration
+model DataSource {
+  id              String         @id @default(uuid())
+  name            String
+  description     String?
+  type            DataSourceType
+  host            String?
+  port            Int?
+  database        String?
+  username        String?
+  password        String?        // Encrypted
+
+  // AWS Athena specific
+  awsRegion       String?
+  awsAccessKeyId  String?        // Encrypted
+  awsSecretKey    String?        // Encrypted
+  athenaWorkgroup String?
+  athenaOutputLocation String?
+  athenaCatalog   String?
+
+  // Connection options
+  connectionOptions Json?
+  isActive        Boolean        @default(true)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+
+  // Relations
+  rules           Rule[]
+
+  @@map("data_sources")
+}
+
+// Data Quality Rule
+model Rule {
+  id              String      @id @default(uuid())
+  name            String
+  description     String?
+  sqlQuery        String      @db.Text
+  expectedResult  String?     @db.Text
+  threshold       Float?      // For numeric comparisons
+  status          RuleStatus  @default(DRAFT)
+  category        String?
+  tags            String[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  dataSourceId    String
+  dataSource      DataSource  @relation(fields: [dataSourceId], references: [id])
+
+  createdById     String
+  createdBy       User        @relation(fields: [createdById], references: [id])
+
+  // Relations
+  schedules       Schedule[]
+  executions      Execution[]
+  reports         Report[]
+
+  @@map("rules")
+}
+
+// Scheduled Jobs
+model Schedule {
+  id              String            @id @default(uuid())
+  name            String
+  description     String?
+  cronExpression  String
+  frequency       ScheduleFrequency
+  isActive        Boolean           @default(true)
+  timezone        String            @default("UTC")
+  nextRunAt       DateTime?
+  lastRunAt       DateTime?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  ruleId          String
+  rule            Rule              @relation(fields: [ruleId], references: [id])
+
+  createdById     String
+  createdBy       User              @relation(fields: [createdById], references: [id])
+
+  // Relations
+  executions      Execution[]
+
+  @@map("schedules")
+}
+
+// Rule Execution History
+model Execution {
+  id              String          @id @default(uuid())
+  status          ExecutionStatus @default(PENDING)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  duration        Int?            // in milliseconds
+
+  resultData      Json?
+  rowCount        Int?
+  errorMessage    String?         @db.Text
+  errorDetails    Json?
+
+  createdAt       DateTime        @default(now())
+
+  ruleId          String
+  rule            Rule            @relation(fields: [ruleId], references: [id])
+
+  scheduleId      String?
+  schedule        Schedule?       @relation(fields: [scheduleId], references: [id])
+
+  triggeredById   String
+  triggeredBy     User            @relation(fields: [triggeredById], references: [id])
+
+  @@map("executions")
+}
+
+// Generated Reports
+model Report {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  sqlQuery        String    @db.Text
+  resultData      Json?
+  rowCount        Int?
+  generatedAt     DateTime  @default(now())
+
+  ruleId          String?
+  rule            Rule?     @relation(fields: [ruleId], references: [id])
+
+  createdById     String
+  createdBy       User      @relation(fields: [createdById], references: [id])
+
+  @@map("reports")
+}
+
+// Dashboard Widgets Configuration
+model DashboardWidget {
+  id              String    @id @default(uuid())
+  name            String
+  type            String    // chart, table, metric, etc.
+  config          Json
+  position        Json      // x, y, width, height
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("dashboard_widgets")
+}
+
+// Audit Log
+model AuditLog {
+  id              String    @id @default(uuid())
+  action          String
+  entityType      String
+  entityId        String
+  oldValues       Json?
+  newValues       Json?
+  userId          String?
+  ipAddress       String?
+  userAgent       String?
+
+  createdAt       DateTime  @default(now())
+
+  @@map("audit_logs")
+}
