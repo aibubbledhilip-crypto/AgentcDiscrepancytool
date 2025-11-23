@@ -191,32 +191,53 @@ export class QueryExecutorService {
       attempts++;
     }
 
-    // Get results
-    const resultsCommand = new GetQueryResultsCommand({
-      QueryExecutionId: queryExecutionId,
-    });
-    const resultsResponse = await client.send(resultsCommand);
+    // Get results with pagination to handle more than 1000 rows
+    let columns: string[] = [];
+    const allRows: Record<string, any>[] = [];
+    let nextToken: string | undefined = undefined;
+    let isFirstPage = true;
 
-    const resultSet = resultsResponse.ResultSet;
-    const columnInfo = resultSet?.ResultSetMetadata?.ColumnInfo || [];
-    const columns = columnInfo.map((c) => c.Name || '');
-
-    const rawRows = resultSet?.Rows || [];
-    // Skip header row (first row contains column names)
-    const dataRows = rawRows.slice(1);
-
-    const rows = dataRows.map((row) => {
-      const obj: Record<string, any> = {};
-      row.Data?.forEach((cell, index) => {
-        obj[columns[index]] = cell.VarCharValue || null;
+    do {
+      const resultsCommand = new GetQueryResultsCommand({
+        QueryExecutionId: queryExecutionId,
+        NextToken: nextToken,
+        MaxResults: 1000, // Maximum allowed by Athena API
       });
-      return obj;
-    });
+      const resultsResponse = await client.send(resultsCommand);
+
+      const resultSet = resultsResponse.ResultSet;
+
+      // Get column names from first page only
+      if (isFirstPage) {
+        const columnInfo = resultSet?.ResultSetMetadata?.ColumnInfo || [];
+        columns = columnInfo.map((c) => c.Name || '');
+      }
+
+      const rawRows = resultSet?.Rows || [];
+      // Skip header row only on first page (first row contains column names)
+      const dataRows = isFirstPage ? rawRows.slice(1) : rawRows;
+
+      const pageRows = dataRows.map((row) => {
+        const obj: Record<string, any> = {};
+        row.Data?.forEach((cell, index) => {
+          obj[columns[index]] = cell.VarCharValue || null;
+        });
+        return obj;
+      });
+
+      allRows.push(...pageRows);
+      nextToken = resultsResponse.NextToken;
+      isFirstPage = false;
+
+      logger.info(`Athena query: fetched ${allRows.length} rows so far...`);
+    } while (nextToken);
+
+    logger.info(`Athena query complete: ${allRows.length} total rows`);
 
     return {
       columns,
-      rows,
-      rowCount: rows.length,
+      rows: allRows,
+      rowCount: allRows.length,
       executionTime: 0,
     };
   }
