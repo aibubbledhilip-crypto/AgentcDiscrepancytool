@@ -14,24 +14,42 @@ const createValidation = [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('sqlQuery').trim().notEmpty().withMessage('SQL query is required'),
   body('dataSourceId').isUUID().withMessage('Valid data source ID is required'),
-  body('description').optional().trim(),
-  body('expectedResult').optional().trim(),
-  body('threshold').optional().isFloat().withMessage('Threshold must be a number'),
+  body('description').optional({ nullable: true }).trim(),
+  body('expectedResult').optional({ nullable: true }).trim(),
+  body('threshold').optional({ nullable: true }).custom((value) => {
+    if (value === null || value === '' || value === undefined) return true;
+    const num = parseFloat(value);
+    if (isNaN(num)) throw new Error('Threshold must be a number');
+    return true;
+  }),
   body('status').optional().isIn(['ACTIVE', 'INACTIVE', 'DRAFT']).withMessage('Invalid status'),
-  body('category').optional().trim(),
-  body('tags').optional().isArray().withMessage('Tags must be an array'),
+  body('category').optional({ nullable: true }).trim(),
+  body('tags').optional({ nullable: true }).custom((value) => {
+    if (value === null || value === undefined || (Array.isArray(value) && value.length === 0)) return true;
+    if (!Array.isArray(value)) throw new Error('Tags must be an array');
+    return true;
+  }),
 ];
 
 const updateValidation = [
   param('id').isUUID().withMessage('Invalid rule ID'),
   body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
   body('sqlQuery').optional().trim().notEmpty().withMessage('SQL query cannot be empty'),
-  body('description').optional().trim(),
-  body('expectedResult').optional().trim(),
-  body('threshold').optional().isFloat().withMessage('Threshold must be a number'),
+  body('description').optional({ nullable: true }).trim(),
+  body('expectedResult').optional({ nullable: true }).trim(),
+  body('threshold').optional({ nullable: true }).custom((value) => {
+    if (value === null || value === '' || value === undefined) return true;
+    const num = parseFloat(value);
+    if (isNaN(num)) throw new Error('Threshold must be a number');
+    return true;
+  }),
   body('status').optional().isIn(['ACTIVE', 'INACTIVE', 'DRAFT']).withMessage('Invalid status'),
-  body('category').optional().trim(),
-  body('tags').optional().isArray().withMessage('Tags must be an array'),
+  body('category').optional({ nullable: true }).trim(),
+  body('tags').optional({ nullable: true }).custom((value) => {
+    if (value === null || value === undefined || (Array.isArray(value) && value.length === 0)) return true;
+    if (!Array.isArray(value)) throw new Error('Tags must be an array');
+    return true;
+  }),
 ];
 
 // Routes
