@@ -33,43 +33,49 @@ interface ExecutionResult {
   success: boolean;
   data?: QueryResult;
   error?: string;
-  discrepancyDetected?: boolean;
-  discrepancyDetails?: string;
+  breachDetected?: boolean;
+  breachDetails?: string;
 }
 
 export class RuleService {
   /**
-   * Generate the next DQ Rule ID
+   * Generate the next Gatekeeper ID
    */
   private async generateRuleId(): Promise<string> {
     // Find the highest existing ruleId to determine the next number
-    const lastRule = await prisma.rule.findFirst({
-      where: {
-        ruleId: {
-          startsWith: 'DQ-',
-        },
-      },
-      orderBy: {
-        ruleId: 'desc',
-      },
-      select: {
-        ruleId: true,
-      },
-    });
+    // Check both GK- (new) and DQ- (legacy) prefixes
+    const [lastGKRule, lastDQRule] = await Promise.all([
+      prisma.rule.findFirst({
+        where: { ruleId: { startsWith: 'GK-' } },
+        orderBy: { ruleId: 'desc' },
+        select: { ruleId: true },
+      }),
+      prisma.rule.findFirst({
+        where: { ruleId: { startsWith: 'DQ-' } },
+        orderBy: { ruleId: 'desc' },
+        select: { ruleId: true },
+      }),
+    ]);
 
     let nextNumber = 1;
 
-    if (lastRule?.ruleId) {
-      // Extract number from last ruleId (e.g., "DQ-0000005" -> 5)
-      const lastNumber = parseInt(lastRule.ruleId.replace('DQ-', ''), 10);
+    // Get the highest number from both prefixes
+    if (lastGKRule?.ruleId) {
+      const lastNumber = parseInt(lastGKRule.ruleId.replace('GK-', ''), 10);
       if (!isNaN(lastNumber)) {
-        nextNumber = lastNumber + 1;
+        nextNumber = Math.max(nextNumber, lastNumber + 1);
+      }
+    }
+    if (lastDQRule?.ruleId) {
+      const lastNumber = parseInt(lastDQRule.ruleId.replace('DQ-', ''), 10);
+      if (!isNaN(lastNumber)) {
+        nextNumber = Math.max(nextNumber, lastNumber + 1);
       }
     }
 
-    // Format: DQ-0000001 (7 digits)
+    // Format: GK-0000001 (7 digits)
     const paddedNumber = String(nextNumber).padStart(7, '0');
-    return `DQ-${paddedNumber}`;
+    return `GK-${paddedNumber}`;
   }
 
   /**
@@ -289,8 +295,8 @@ export class RuleService {
         rule.sqlQuery
       );
 
-      // Check for discrepancies
-      const discrepancyCheck = this.checkDiscrepancy(rule, queryResult);
+      // Check for breaches
+      const breachCheck = this.checkBreach(rule, queryResult);
 
       // Update execution with results
       await prisma.execution.update({
@@ -309,7 +315,7 @@ export class RuleService {
       return {
         success: true,
         data: queryResult,
-        ...discrepancyCheck,
+        ...breachCheck,
       };
     } catch (error: any) {
       // Update execution with error
@@ -333,12 +339,12 @@ export class RuleService {
   }
 
   /**
-   * Check for discrepancies in query results
+   * Check for breaches in query results
    */
-  private checkDiscrepancy(
+  private checkBreach(
     rule: Rule,
     result: QueryResult
-  ): { discrepancyDetected: boolean; discrepancyDetails?: string } {
+  ): { breachDetected: boolean; breachDetails?: string } {
     // If expected result is defined, compare
     if (rule.expectedResult) {
       try {
@@ -348,8 +354,8 @@ export class RuleService {
         if (Array.isArray(expected)) {
           if (result.rowCount !== expected.length) {
             return {
-              discrepancyDetected: true,
-              discrepancyDetails: `Expected ${expected.length} rows, got ${result.rowCount}`,
+              breachDetected: true,
+              breachDetails: `Expected ${expected.length} rows, got ${result.rowCount}`,
             };
           }
         }
@@ -358,8 +364,8 @@ export class RuleService {
         const expectedCount = parseInt(rule.expectedResult, 10);
         if (!isNaN(expectedCount) && result.rowCount !== expectedCount) {
           return {
-            discrepancyDetected: true,
-            discrepancyDetails: `Expected ${expectedCount} rows, got ${result.rowCount}`,
+            breachDetected: true,
+            breachDetails: `Expected ${expectedCount} rows, got ${result.rowCount}`,
           };
         }
       }
@@ -381,23 +387,23 @@ export class RuleService {
 
           if (value > rule.threshold) {
             return {
-              discrepancyDetected: true,
-              discrepancyDetails: `Value ${value} exceeds threshold ${rule.threshold}`,
+              breachDetected: true,
+              breachDetails: `Value ${value} exceeds threshold ${rule.threshold}`,
             };
           }
         }
       }
     }
 
-    // If rows returned and no expected result, flag as potential discrepancy
+    // If rows returned and no expected result, flag as potential breach
     if (result.rowCount > 0 && !rule.expectedResult && rule.threshold === null) {
       return {
-        discrepancyDetected: true,
-        discrepancyDetails: `Query returned ${result.rowCount} rows indicating potential discrepancy`,
+        breachDetected: true,
+        breachDetails: `Query returned ${result.rowCount} rows indicating potential breach`,
       };
     }
 
-    return { discrepancyDetected: false };
+    return { breachDetected: false };
   }
 
   /**

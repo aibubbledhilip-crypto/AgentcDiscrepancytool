@@ -32,11 +32,11 @@ router.get(
 );
 
 router.get(
-  '/discrepancy-summary',
+  '/breach-summary',
   validate([
     query('limit').optional().isInt({ min: 1, max: 20 }).withMessage('Limit must be 1-20'),
   ]),
-  dashboardController.getDiscrepancySummary.bind(dashboardController)
+  dashboardController.getBreachSummary.bind(dashboardController)
 );
 
 router.get(

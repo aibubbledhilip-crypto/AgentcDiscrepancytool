@@ -32,10 +32,10 @@ interface ExecutionTrend {
   total: number;
 }
 
-interface DiscrepancySummary {
+interface BreachSummary {
   ruleId: string;
   ruleName: string;
-  discrepancyCount: number;
+  breachCount: number;
   lastDetected: Date | null;
 }
 
@@ -170,13 +170,13 @@ export class DashboardService {
   }
 
   /**
-   * Get rules with most discrepancies
+   * Get rules with most breaches
    */
-  async getDiscrepancySummary(
+  async getBreachSummary(
     userId: string,
     isAdmin: boolean,
     limit: number = 5
-  ): Promise<DiscrepancySummary[]> {
+  ): Promise<BreachSummary[]> {
     const rules = await prisma.rule.findMany({
       where: isAdmin ? {} : { createdById: userId },
       include: {
@@ -190,16 +190,16 @@ export class DashboardService {
       },
     });
 
-    const summary: DiscrepancySummary[] = rules
+    const summary: BreachSummary[] = rules
       .map((rule) => ({
         ruleId: rule.id,
         ruleName: rule.name,
-        discrepancyCount: rule.executions.filter((e) => (e.rowCount || 0) > 0).length,
+        breachCount: rule.executions.filter((e) => (e.rowCount || 0) > 0).length,
         lastDetected:
           rule.executions.find((e) => (e.rowCount || 0) > 0)?.createdAt || null,
       }))
-      .filter((s) => s.discrepancyCount > 0)
-      .sort((a, b) => b.discrepancyCount - a.discrepancyCount)
+      .filter((s) => s.breachCount > 0)
+      .sort((a, b) => b.breachCount - a.breachCount)
       .slice(0, limit);
 
     return summary;

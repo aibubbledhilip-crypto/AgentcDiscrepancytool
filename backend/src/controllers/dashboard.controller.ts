@@ -81,9 +81,9 @@ export class DashboardController {
   }
 
   /**
-   * Get discrepancy summary
+   * Get breach summary
    */
-  async getDiscrepancySummary(
+  async getBreachSummary(
     req: Request,
     res: Response,
     next: NextFunction
@@ -96,13 +96,13 @@ export class DashboardController {
 
       const limit = parseInt(req.query.limit as string) || 5;
 
-      const summary = await dashboardService.getDiscrepancySummary(
+      const summary = await dashboardService.getBreachSummary(
         req.user.id,
         req.user.role === 'ADMIN',
         limit
       );
 
-      sendSuccess(res, summary, 'Discrepancy summary retrieved successfully');
+      sendSuccess(res, summary, 'Breach summary retrieved successfully');
     } catch (error) {
       next(error);
     }

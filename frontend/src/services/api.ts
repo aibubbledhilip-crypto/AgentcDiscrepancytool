@@ -103,8 +103,8 @@ export const dashboardApi = {
     api.get('/dashboard/recent-executions', { params: { limit } }),
   getExecutionTrends: (days?: number) =>
     api.get('/dashboard/execution-trends', { params: { days } }),
-  getDiscrepancySummary: (limit?: number) =>
-    api.get('/dashboard/discrepancy-summary', { params: { limit } }),
+  getBreachSummary: (limit?: number) =>
+    api.get('/dashboard/breach-summary', { params: { limit } }),
   getUpcomingSchedules: (limit?: number) =>
     api.get('/dashboard/upcoming-schedules', { params: { limit } }),
 };

@@ -215,8 +215,8 @@ export default function Rules() {
       const response = await rulesApi.execute(id);
       const result = response.data.data;
       if (result.success) {
-        if (result.discrepancyDetected) {
-          toast.error(`Discrepancy detected: ${result.discrepancyDetails}`);
+        if (result.breachDetected) {
+          toast.error(`Breach detected: ${result.breachDetails}`);
         } else {
           toast.success(`Executed successfully. ${result.data?.rowCount || 0} rows returned`);
         }
@@ -276,7 +276,7 @@ export default function Rules() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold text-gray-800">DQ Rules</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">Gatekeepers</h1>
           <button
             onClick={fetchRules}
             className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
@@ -287,7 +287,7 @@ export default function Rules() {
           <button
             onClick={openCreateModal}
             className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
-            title="Add Rule"
+            title="Add Gatekeeper"
           >
             <PencilIcon className="w-5 h-5" />
           </button>
@@ -393,7 +393,7 @@ export default function Rules() {
         <div className="bg-blue-500 text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <CheckCircleIcon className="w-6 h-6" />
-            <span className="font-medium">Total Rules</span>
+            <span className="font-medium">Total Gatekeepers</span>
           </div>
           <span className="text-3xl font-bold">{stats.total}</span>
         </div>
@@ -435,10 +435,10 @@ export default function Rules() {
                   />
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rule ID
+                  GK ID
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[300px]">
-                  Rule Desc
+                  GK Desc
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Run Status

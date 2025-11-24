@@ -35,7 +35,7 @@ export interface DataSource {
 
 export interface Rule {
   id: string;
-  ruleId: string;  // Auto-generated DQ-XXXXXXX format
+  ruleId: string;  // Auto-generated GK-XXXXXXX format (Gatekeeper ID)
   name: string;
   description?: string;
   sqlQuery: string;
@@ -146,10 +146,10 @@ export interface ExecutionTrend {
   total: number;
 }
 
-export interface DiscrepancySummary {
+export interface BreachSummary {
   ruleId: string;
   ruleName: string;
-  discrepancyCount: number;
+  breachCount: number;
   lastDetected?: string;
 }
 

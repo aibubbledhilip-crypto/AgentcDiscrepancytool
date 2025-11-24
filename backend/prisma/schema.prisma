@@ -1,4 +1,4 @@
-// Prisma schema for Data Quality Discrepancy Checker
+// Prisma schema for WatchTower - Reconciliation Data Analytics
 
 generator client {
   provider = "prisma-client-js"
@@ -109,10 +109,10 @@ model DataSource {
   @@map("data_sources")
 }
 
-// Data Quality Rule
+// Gatekeeper - Data quality/reconciliation check
 model Rule {
   id              String      @id @default(uuid())
-  ruleId          String      @unique  // Auto-generated DQ-XXXXXXX format
+  ruleId          String      @unique  // Auto-generated GK-XXXXXXX format (Gatekeeper ID)
   name            String
   description     String?
   sqlQuery        String      @db.Text
@@ -142,9 +142,9 @@ model Rule {
 // Sequence counter for auto-generating IDs
 model Sequence {
   id              String      @id @default(uuid())
-  name            String      @unique  // e.g., "rule_id"
+  name            String      @unique  // e.g., "gatekeeper_id"
   currentValue    Int         @default(0)
-  prefix          String      @default("DQ")
+  prefix          String      @default("GK")
   updatedAt       DateTime    @updatedAt
 
   @@map("sequences")

@@ -159,7 +159,7 @@ export default function RuleDetail() {
       const response = await rulesApi.getById(id!);
       setRule(response.data.data);
     } catch (error) {
-      toast.error('Failed to load rule');
+      toast.error('Failed to load gatekeeper');
       navigate('/rules');
     } finally {
       setLoading(false);
@@ -182,8 +182,8 @@ export default function RuleDetail() {
       const response = await rulesApi.execute(rule.id);
       const result = response.data.data;
       if (result.success) {
-        if (result.discrepancyDetected) {
-          toast.error(`Discrepancy detected: ${result.discrepancyDetails}`);
+        if (result.breachDetected) {
+          toast.error(`Breach detected: ${result.breachDetails}`);
         } else {
           toast.success(`Executed successfully. ${result.data?.rowCount || 0} rows returned`);
         }
@@ -208,7 +208,7 @@ export default function RuleDetail() {
   if (!rule) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Rule not found</p>
+        <p className="text-gray-500">Gatekeeper not found</p>
       </div>
     );
   }
@@ -281,7 +281,7 @@ export default function RuleDetail() {
             ) : (
               <PlayIcon className="w-4 h-4" />
             )}
-            Run Rule
+            Run Gatekeeper
           </button>
           <button
             onClick={() => navigate(`/rules/${rule.id}/edit`)}

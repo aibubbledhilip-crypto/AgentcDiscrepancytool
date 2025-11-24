@@ -17,7 +17,7 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Data Sources', href: '/datasources', icon: CircleStackIcon },
-  { name: 'DQ Rules', href: '/rules', icon: ClipboardDocumentCheckIcon },
+  { name: 'Gatekeepers', href: '/rules', icon: ClipboardDocumentCheckIcon },
   { name: 'Schedules', href: '/schedules', icon: ClockIcon },
   { name: 'Reports', href: '/reports', icon: DocumentChartBarIcon },
 ];

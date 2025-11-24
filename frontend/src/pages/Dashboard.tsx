@@ -20,7 +20,7 @@ import {
   Bar,
 } from 'recharts';
 import { dashboardApi } from '../services/api';
-import { DashboardStats, ExecutionTrend, DiscrepancySummary } from '../types';
+import { DashboardStats, ExecutionTrend, BreachSummary } from '../types';
 import toast from 'react-hot-toast';
 
 interface RecentExecution {
@@ -36,7 +36,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [trends, setTrends] = useState<ExecutionTrend[]>([]);
   const [recentExecutions, setRecentExecutions] = useState<RecentExecution[]>([]);
-  const [discrepancies, setDiscrepancies] = useState<DiscrepancySummary[]>([]);
+  const [breaches, setBreaches] = useState<BreachSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,17 +45,17 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, trendsRes, executionsRes, discrepanciesRes] = await Promise.all([
+      const [statsRes, trendsRes, executionsRes, breachesRes] = await Promise.all([
         dashboardApi.getStats(),
         dashboardApi.getExecutionTrends(7),
         dashboardApi.getRecentExecutions(5),
-        dashboardApi.getDiscrepancySummary(5),
+        dashboardApi.getBreachSummary(5),
       ]);
 
       setStats(statsRes.data.data);
       setTrends(trendsRes.data.data);
       setRecentExecutions(executionsRes.data.data);
-      setDiscrepancies(discrepanciesRes.data.data);
+      setBreaches(breachesRes.data.data);
     } catch (error: any) {
       toast.error('Failed to load dashboard data');
     } finally {
@@ -81,7 +81,7 @@ export default function Dashboard() {
       href: '/datasources',
     },
     {
-      name: 'Rules',
+      name: 'Gatekeepers',
       value: stats?.totalRules || 0,
       active: stats?.activeRules || 0,
       icon: ClipboardDocumentCheckIcon,
@@ -167,17 +167,17 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Discrepancy Summary */}
+        {/* Breach Summary */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Discrepancies</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Breaches</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={discrepancies} layout="vertical">
+              <BarChart data={breaches} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" fontSize={12} />
                 <YAxis dataKey="ruleName" type="category" fontSize={12} width={100} />
                 <Tooltip />
-                <Bar dataKey="discrepancyCount" fill="#f59e0b" name="Discrepancies" />
+                <Bar dataKey="breachCount" fill="#f59e0b" name="Breaches" />
               </BarChart>
             </ResponsiveContainer>
           </div>
