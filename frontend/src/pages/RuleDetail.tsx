@@ -448,7 +448,8 @@ export default function RuleDetail() {
         </div>
       )}
 
-      {/* Bottom Tabs */}
+      {/* Bottom Tabs - Only show on Data Quality tab */}
+      {activeMainTab === 'dataQuality' && (
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="border-b border-gray-200 px-6">
           <nav className="flex gap-8">
@@ -644,6 +645,7 @@ export default function RuleDetail() {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }
