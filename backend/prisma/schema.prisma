@@ -112,6 +112,7 @@ model DataSource {
 // Data Quality Rule
 model Rule {
   id              String      @id @default(uuid())
+  ruleId          String      @unique  // Auto-generated DQ-XXXXXXX format
   name            String
   description     String?
   sqlQuery        String      @db.Text
@@ -136,6 +137,17 @@ model Rule {
   reports         Report[]
 
   @@map("rules")
+}
+
+// Sequence counter for auto-generating IDs
+model Sequence {
+  id              String      @id @default(uuid())
+  name            String      @unique  // e.g., "rule_id"
+  currentValue    Int         @default(0)
+  prefix          String      @default("DQ")
+  updatedAt       DateTime    @updatedAt
+
+  @@map("sequences")
 }
 
 // Scheduled Jobs

@@ -35,6 +35,7 @@ export interface DataSource {
 
 export interface Rule {
   id: string;
+  ruleId: string;  // Auto-generated DQ-XXXXXXX format
   name: string;
   description?: string;
   sqlQuery: string;

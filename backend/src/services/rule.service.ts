@@ -39,6 +39,42 @@ interface ExecutionResult {
 
 export class RuleService {
   /**
+   * Generate the next DQ Rule ID
+   */
+  private async generateRuleId(): Promise<string> {
+    // Use a transaction to safely increment the sequence
+    const sequence = await prisma.$transaction(async (tx) => {
+      // Try to get existing sequence
+      let seq = await tx.sequence.findUnique({
+        where: { name: 'rule_id' },
+      });
+
+      if (!seq) {
+        // Create sequence if it doesn't exist
+        seq = await tx.sequence.create({
+          data: {
+            name: 'rule_id',
+            currentValue: 1,
+            prefix: 'DQ',
+          },
+        });
+      } else {
+        // Increment the sequence
+        seq = await tx.sequence.update({
+          where: { name: 'rule_id' },
+          data: { currentValue: { increment: 1 } },
+        });
+      }
+
+      return seq;
+    });
+
+    // Format: DQ-0000001 (7 digits)
+    const paddedNumber = String(sequence.currentValue).padStart(7, '0');
+    return `${sequence.prefix}-${paddedNumber}`;
+  }
+
+  /**
    * Create a new rule
    */
   async create(input: CreateRuleInput): Promise<Rule> {
@@ -51,8 +87,12 @@ export class RuleService {
       throw new AppError('Data source not found', 404);
     }
 
+    // Generate auto-incremented Rule ID
+    const ruleId = await this.generateRuleId();
+
     const rule = await prisma.rule.create({
       data: {
+        ruleId,
         name: input.name,
         description: input.description,
         sqlQuery: input.sqlQuery,
@@ -71,7 +111,7 @@ export class RuleService {
       },
     });
 
-    logger.info(`Rule created: ${rule.name}`);
+    logger.info(`Rule created: ${rule.ruleId} - ${rule.name}`);
     return rule;
   }
 

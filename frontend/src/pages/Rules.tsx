@@ -41,7 +41,6 @@ interface RuleForm {
 
 // Extended rule type with execution info for display
 interface RuleWithExecution extends Rule {
-  ruleId: string;
   runStatus: 'Passed' | 'Exception';
   alertStatus: 'Healthy' | 'Alerting';
   runResult: number;
@@ -102,17 +101,17 @@ export default function Rules() {
     }
   };
 
-  // Transform rules for display with mock execution data
+  // Transform rules for display with execution data
   const rulesWithExecution: RuleWithExecution[] = useMemo(() => {
-    return rules.map((rule, index) => {
-      // Generate consistent mock data based on rule properties
+    return rules.map((rule) => {
+      // Use actual execution count from the rule
       const hasExecutions = rule._count?.executions && rule._count.executions > 0;
+      // For demo purposes, generate mock run result - in production this would come from actual execution data
       const runResult = hasExecutions ? Math.floor(Math.random() * 10000) : 0;
       const isHealthy = runResult === 0;
 
       return {
         ...rule,
-        ruleId: `DQ-${String(1000 + index).padStart(7, '0')}`,
         runStatus: isHealthy ? 'Passed' : 'Exception',
         alertStatus: isHealthy ? 'Healthy' : 'Alerting',
         runResult,
