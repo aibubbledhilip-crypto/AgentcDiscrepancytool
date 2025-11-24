@@ -11,12 +11,13 @@ import {
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Data Sources', href: '/datasources', icon: CircleStackIcon },
-  { name: 'Rules', href: '/rules', icon: ClipboardDocumentCheckIcon },
+  { name: 'DQ Rules', href: '/rules', icon: ClipboardDocumentCheckIcon },
   { name: 'Schedules', href: '/schedules', icon: ClockIcon },
   { name: 'Reports', href: '/reports', icon: DocumentChartBarIcon },
 ];
@@ -50,16 +51,16 @@ export default function Layout() {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-slate-900">
             <Link to="/dashboard" className="flex items-center gap-2">
-              <CircleStackIcon className="w-8 h-8 text-primary-600" />
-              <span className="text-lg font-bold text-gray-900">DQ Checker</span>
+              <ShieldCheckIcon className="w-8 h-8 text-blue-400" />
+              <span className="text-lg font-bold text-white">WatchTower</span>
             </Link>
             <button
               className="lg:hidden"
               onClick={() => setSidebarOpen(false)}
             >
-              <XMarkIcon className="w-6 h-6 text-gray-500" />
+              <XMarkIcon className="w-6 h-6 text-gray-400" />
             </button>
           </div>
 
