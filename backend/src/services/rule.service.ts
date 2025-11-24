@@ -42,36 +42,34 @@ export class RuleService {
    * Generate the next DQ Rule ID
    */
   private async generateRuleId(): Promise<string> {
-    // Use a transaction to safely increment the sequence
-    const sequence = await prisma.$transaction(async (tx) => {
-      // Try to get existing sequence
-      let seq = await tx.sequence.findUnique({
-        where: { name: 'rule_id' },
-      });
-
-      if (!seq) {
-        // Create sequence if it doesn't exist
-        seq = await tx.sequence.create({
-          data: {
-            name: 'rule_id',
-            currentValue: 1,
-            prefix: 'DQ',
-          },
-        });
-      } else {
-        // Increment the sequence
-        seq = await tx.sequence.update({
-          where: { name: 'rule_id' },
-          data: { currentValue: { increment: 1 } },
-        });
-      }
-
-      return seq;
+    // Find the highest existing ruleId to determine the next number
+    const lastRule = await prisma.rule.findFirst({
+      where: {
+        ruleId: {
+          startsWith: 'DQ-',
+        },
+      },
+      orderBy: {
+        ruleId: 'desc',
+      },
+      select: {
+        ruleId: true,
+      },
     });
 
+    let nextNumber = 1;
+
+    if (lastRule?.ruleId) {
+      // Extract number from last ruleId (e.g., "DQ-0000005" -> 5)
+      const lastNumber = parseInt(lastRule.ruleId.replace('DQ-', ''), 10);
+      if (!isNaN(lastNumber)) {
+        nextNumber = lastNumber + 1;
+      }
+    }
+
     // Format: DQ-0000001 (7 digits)
-    const paddedNumber = String(sequence.currentValue).padStart(7, '0');
-    return `${sequence.prefix}-${paddedNumber}`;
+    const paddedNumber = String(nextNumber).padStart(7, '0');
+    return `DQ-${paddedNumber}`;
   }
 
   /**
