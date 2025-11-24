@@ -116,9 +116,9 @@ export default function Login() {
       <div className="absolute bottom-6 right-6 flex items-center gap-2">
         <span className="text-sm text-gray-400">Powered by</span>
         <img
-          src="https://e7.pngegg.com/pngimages/781/291/png-clipart-prodapt-solutions-logo-brand-privately-held-company-run-s-text-logo.png"
+          src="https://cms-eu.jibecdn.com/prod/prodapt/assets/OPENGRAPH-IMAGE-en-us-1738676924627.jpg"
           alt="Prodapt"
-          className="h-8 object-contain brightness-0 invert opacity-70"
+          className="h-8 object-contain"
         />
       </div>
     </div>
