@@ -215,8 +215,38 @@ export class RuleService {
       throw new AppError('Access denied', 403);
     }
 
-    await prisma.rule.delete({
-      where: { id },
+    // Use transaction to delete related records first (cascade delete)
+    await prisma.$transaction(async (tx) => {
+      // Delete related executions
+      await tx.execution.deleteMany({
+        where: { ruleId: id },
+      });
+
+      // Delete related schedules (and their executions first)
+      const schedules = await tx.schedule.findMany({
+        where: { ruleId: id },
+        select: { id: true },
+      });
+
+      for (const schedule of schedules) {
+        await tx.execution.deleteMany({
+          where: { scheduleId: schedule.id },
+        });
+      }
+
+      await tx.schedule.deleteMany({
+        where: { ruleId: id },
+      });
+
+      // Delete related reports
+      await tx.report.deleteMany({
+        where: { ruleId: id },
+      });
+
+      // Finally delete the rule
+      await tx.rule.delete({
+        where: { id },
+      });
     });
 
     logger.info(`Rule deleted: ${existing.name}`);
