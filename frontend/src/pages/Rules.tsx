@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import {
@@ -48,6 +49,7 @@ interface RuleWithExecution extends Rule {
 }
 
 export default function Rules() {
+  const navigate = useNavigate();
   const [rules, setRules] = useState<Rule[]>([]);
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [loading, setLoading] = useState(true);
@@ -567,7 +569,7 @@ export default function Rules() {
                     </td>
                     <td className="px-3 py-3">
                       <button
-                        onClick={() => handleEdit(rule)}
+                        onClick={() => navigate(`/rules/${rule.id}`)}
                         className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
                       >
                         {rule.ruleId}

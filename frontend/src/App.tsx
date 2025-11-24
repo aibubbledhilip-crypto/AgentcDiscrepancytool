@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import DataSources from './pages/DataSources';
 import Rules from './pages/Rules';
+import RuleDetail from './pages/RuleDetail';
 import Schedules from './pages/Schedules';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
@@ -64,6 +65,7 @@ function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="datasources" element={<DataSources />} />
         <Route path="rules" element={<Rules />} />
+        <Route path="rules/:id" element={<RuleDetail />} />
         <Route path="schedules" element={<Schedules />} />
         <Route path="reports" element={<Reports />} />
         <Route path="profile" element={<Profile />} />
