@@ -51,6 +51,7 @@ export interface Rule {
     type: DataSourceType;
   };
   createdAt: string;
+  updatedAt?: string;
   createdById: string;
   _count?: {
     executions: number;

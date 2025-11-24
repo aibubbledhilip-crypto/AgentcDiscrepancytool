@@ -107,9 +107,10 @@ export default function Rules() {
   const rulesWithExecution: RuleWithExecution[] = useMemo(() => {
     return rules.map((rule) => {
       // Use actual execution count from the rule
-      const hasExecutions = rule._count?.executions && rule._count.executions > 0;
-      // For demo purposes, generate mock run result - in production this would come from actual execution data
-      const runResult = hasExecutions ? Math.floor(Math.random() * 10000) : 0;
+      const executionCount = rule._count?.executions || 0;
+      const hasExecutions = executionCount > 0;
+      // Use 0 as default - actual data would come from last execution
+      const runResult = 0;
       const isHealthy = runResult === 0;
 
       return {
@@ -118,7 +119,7 @@ export default function Rules() {
         alertStatus: isHealthy ? 'Healthy' : 'Alerting',
         runResult,
         runDate: hasExecutions
-          ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleString('en-US', {
+          ? new Date(rule.updatedAt || rule.createdAt).toLocaleString('en-US', {
               month: '2-digit',
               day: '2-digit',
               year: 'numeric',
@@ -434,34 +435,22 @@ export default function Rules() {
                   />
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center gap-1">
-                    <span className="text-blue-600">SA</span> Rule ID
-                  </div>
+                  Rule ID
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[300px]">
-                  <div className="flex items-center gap-1">
-                    <span className="text-blue-600">SA</span> Rule Desc
-                  </div>
+                  Rule Desc
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center gap-1">
-                    <span className="text-blue-600">SA</span> Run Status
-                  </div>
+                  Run Status
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center gap-1">
-                    <span className="text-blue-600">SA</span> Alert Status
-                  </div>
+                  Alert Status
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center gap-1">
-                    <span className="text-blue-600">SA</span> Run Result
-                  </div>
+                  Run Result
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center gap-1">
-                    <span className="text-blue-600">SA</span> Run Date
-                  </div>
+                  Run Date
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
