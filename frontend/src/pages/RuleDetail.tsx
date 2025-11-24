@@ -13,9 +13,75 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   EllipsisVerticalIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import { rulesApi } from '../services/api';
 import { Rule, Execution } from '../types';
+
+// Export utility functions
+const exportToCSV = (columns: string[], rows: any[], filename: string) => {
+  const csvContent = [
+    columns.join(','),
+    ...rows.map(row =>
+      columns.map(col => {
+        const value = row[col] ?? '';
+        // Escape quotes and wrap in quotes if contains comma or quote
+        const strValue = String(value);
+        if (strValue.includes(',') || strValue.includes('"') || strValue.includes('\n')) {
+          return `"${strValue.replace(/"/g, '""')}"`;
+        }
+        return strValue;
+      }).join(',')
+    )
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+};
+
+const exportToExcel = (columns: string[], rows: any[], filename: string) => {
+  // Create a simple XML-based Excel file (xlsx compatible)
+  const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Worksheet ss:Name="Data">
+    <Table>
+      <Row>
+        ${columns.map(col => `<Cell><Data ss:Type="String">${escapeXml(col)}</Data></Cell>`).join('')}
+      </Row>
+      ${rows.map(row => `
+      <Row>
+        ${columns.map(col => {
+          const value = row[col] ?? '';
+          const isNumber = typeof value === 'number' || (!isNaN(Number(value)) && value !== '');
+          return `<Cell><Data ss:Type="${isNumber ? 'Number' : 'String'}">${escapeXml(String(value))}</Data></Cell>`;
+        }).join('')}
+      </Row>`).join('')}
+    </Table>
+  </Worksheet>
+</Workbook>`;
+
+  const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}.xls`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+};
+
+const escapeXml = (str: string): string => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+};
 
 // Simple line chart component
 const LineChart = ({ data }: { data: { date: string; value: number }[] }) => {
@@ -426,7 +492,27 @@ export default function RuleDetail() {
           {/* Data Tab */}
           {activeBottomTab === 'data' && (
             <div>
-              <h4 className="text-lg font-medium mb-4">Run Results</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-medium">Run Results</h4>
+                {resultRows.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => exportToCSV(resultColumns, resultRows, `${rule.ruleId}-data`)}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <ArrowDownTrayIcon className="w-4 h-4" />
+                      CSV
+                    </button>
+                    <button
+                      onClick={() => exportToExcel(resultColumns, resultRows, `${rule.ruleId}-data`)}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <ArrowDownTrayIcon className="w-4 h-4" />
+                      Excel
+                    </button>
+                  </div>
+                )}
+              </div>
               {resultRows.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
