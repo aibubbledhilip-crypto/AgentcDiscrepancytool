@@ -57,6 +57,13 @@ export interface Rule {
     executions: number;
     schedules: number;
   };
+  lastExecution?: {
+    id: string;
+    status: ExecutionStatus;
+    rowCount: number | null;
+    createdAt: string;
+    completedAt: string | null;
+  };
 }
 
 export interface Schedule {

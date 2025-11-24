@@ -42,9 +42,9 @@ interface RuleForm {
 
 // Extended rule type with execution info for display
 interface RuleWithExecution extends Rule {
-  runStatus: 'Passed' | 'Exception';
-  alertStatus: 'Healthy' | 'Alerting';
-  runResult: number;
+  runStatus: 'Passed' | 'Noise' | '-';
+  alertStatus: 'Healthy' | 'Alerting' | '-';
+  runResult: number | null;
   runDate: string;
 }
 
@@ -106,20 +106,23 @@ export default function Rules() {
   // Transform rules for display with execution data
   const rulesWithExecution: RuleWithExecution[] = useMemo(() => {
     return rules.map((rule) => {
-      // Use actual execution count from the rule
-      const executionCount = rule._count?.executions || 0;
-      const hasExecutions = executionCount > 0;
-      // Use 0 as default - actual data would come from last execution
-      const runResult = 0;
-      const isHealthy = runResult === 0;
+      const lastExec = rule.lastExecution;
+      const hasExecution = !!lastExec;
+
+      // Get actual run result from last execution
+      const runResult = lastExec?.rowCount ?? null;
+
+      // Determine status based on run result
+      // If rowCount > 0, it means there's a breach/noise
+      const hasBreach = runResult !== null && runResult > 0;
 
       return {
         ...rule,
-        runStatus: isHealthy ? 'Passed' : 'Exception',
-        alertStatus: isHealthy ? 'Healthy' : 'Alerting',
+        runStatus: !hasExecution ? '-' : (hasBreach ? 'Noise' : 'Passed'),
+        alertStatus: !hasExecution ? '-' : (hasBreach ? 'Alerting' : 'Healthy'),
         runResult,
-        runDate: hasExecutions
-          ? new Date(rule.updatedAt || rule.createdAt).toLocaleString('en-US', {
+        runDate: hasExecution && lastExec.createdAt
+          ? new Date(lastExec.createdAt).toLocaleString('en-US', {
               month: '2-digit',
               day: '2-digit',
               year: 'numeric',
@@ -492,7 +495,7 @@ export default function Rules() {
                     >
                       <option value="">All</option>
                       <option value="Passed">Passed</option>
-                      <option value="Exception">Exception</option>
+                      <option value="Noise">Noise</option>
                     </select>
                     <FunnelIcon className="w-4 h-4 text-gray-400" />
                   </div>
@@ -575,27 +578,33 @@ export default function Rules() {
                             <CheckCircleIcon className="w-4 h-4 text-green-500" />
                             <span className="text-sm text-gray-700">Passed</span>
                           </>
-                        ) : (
+                        ) : rule.runStatus === 'Noise' ? (
                           <>
-                            <DocumentTextIcon className="w-4 h-4 text-red-500" />
-                            <span className="text-sm text-gray-700">Exception</span>
+                            <ExclamationTriangleIcon className="w-4 h-4 text-orange-500" />
+                            <span className="text-sm text-gray-700">Noise</span>
                           </>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
                         )}
                       </div>
                     </td>
                     <td className="px-3 py-3">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-medium ${
-                          rule.alertStatus === 'Healthy'
-                            ? 'bg-green-100 text-green-700 border border-green-300'
-                            : 'bg-red-100 text-red-700 border border-red-300'
-                        }`}
-                      >
-                        {rule.alertStatus}
-                      </span>
+                      {rule.alertStatus === '-' ? (
+                        <span className="text-sm text-gray-400">-</span>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-medium ${
+                            rule.alertStatus === 'Healthy'
+                              ? 'bg-green-100 text-green-700 border border-green-300'
+                              : 'bg-red-100 text-red-700 border border-red-300'
+                          }`}
+                        >
+                          {rule.alertStatus}
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-700">
-                      {rule.runResult.toLocaleString()}
+                      {rule.runResult !== null ? rule.runResult.toLocaleString() : '-'}
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-700 whitespace-nowrap">
                       {rule.runDate}

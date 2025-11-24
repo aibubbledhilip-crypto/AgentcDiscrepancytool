@@ -120,9 +120,9 @@ export class RuleService {
   }
 
   /**
-   * Get all rules
+   * Get all rules with last execution data
    */
-  async findAll(userId: string, isAdmin: boolean): Promise<Rule[]> {
+  async findAll(userId: string, isAdmin: boolean): Promise<any[]> {
     const rules = await prisma.rule.findMany({
       where: isAdmin ? {} : { createdById: userId },
       include: {
@@ -132,11 +132,29 @@ export class RuleService {
         _count: {
           select: { executions: true, schedules: true },
         },
+        executions: {
+          take: 1,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            status: true,
+            rowCount: true,
+            createdAt: true,
+            completedAt: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return rules;
+    // Transform to include lastExecution field
+    return rules.map((rule) => {
+      const { executions, ...ruleData } = rule;
+      return {
+        ...ruleData,
+        lastExecution: executions[0] || null,
+      };
+    });
   }
 
   /**
